@@ -7,15 +7,41 @@ class TikTakTo:
         self.players = ["x", "o"]       # Only 2 Players allowed
         self.current_player = self.players[0]
         
-    def start_game(self):
+    def start_terminal_game(self, break_after_win:bool):
+        """
+        This will start a terminal tiktakto game.
+        """
+        if break_after_win:
+            self.drawBoard()
+            print(f"Player {self.current_player} choose a Number where you wanna place your Mark!")
+            choosen_field = self.get_valid_input()
+            self.field[choosen_field-1] = self.current_player
+            self.switch_player()
+            self.check_winner(silent=False)
+            return
+        
         while True:
             self.drawBoard()
             print(f"Player {self.current_player} choose a Number where you wanna place your Mark!")
             choosen_field = self.get_valid_input()
             self.field[choosen_field-1] = self.current_player
             self.switch_player()
-            self.check_winner()
+            self.check_winner(silent=False)
             
+            
+    def external_game(self, choosen_field:str):
+        """
+        Note: First player is self.players[0] (Default "x")
+
+        Args:
+            input (str): the field your choosing
+        """
+        self.field[choosen_field-1] = self.current_player
+        self.switch_player()
+        won = self.check_winner(silent=True)
+        return self.field, won
+        
+        
         
     def switch_player(self):
         index = self.players.index(self.current_player)
@@ -45,9 +71,9 @@ class TikTakTo:
     def get_valid_input(self) -> int:
         while True:
             _chosen_field = self.get_input()
-            if self.check_valid(self.field, _chosen_field):
+            if self.check_valid(_chosen_field):
                 return _chosen_field
-            print("Please Use a Valid Number!")
+            print("Please use a valid number!")
     
     @staticmethod
     def get_input() -> int:
@@ -56,12 +82,12 @@ class TikTakTo:
             try:
                 _choice = int(_user_choice)
             except ValueError:
-                print("Only Numbers are allowed!")
+                print("Only numbers are allowed!")
             else:
                 return _choice
         
-    def check_valid(self, field, field_number) -> bool:
-        if field_number in field: # Inisde the field are stored numbers so if a number has been picked it would be an x/o so by checking if the number is we know it isnt used
+    def check_valid(self, field_number) -> bool:
+        if field_number in self.field: # Inisde the field are stored numbers so if a number has been picked it would be an x/o so by checking if the number is we know it isnt used
             return True
         return False
     
@@ -97,7 +123,8 @@ class TikTakTo:
         return self.check_lists_for_winner(liste)
     
     def check_diagonal(self):
-        liste = [[self.field[0], self.field[4], self.field[8]],[self.field[2], self.field[4], self.field[6]]] # There are only 2 Diagonal Patterns
+        # There are only 2 Diagonal Patterns so im lazy
+        liste = [[self.field[0], self.field[4], self.field[8]],[self.field[2], self.field[4], self.field[6]]]
         return self.check_lists_for_winner(liste)
             
     def reset_board(self):
@@ -110,20 +137,26 @@ class TikTakTo:
         print(msg)
         sleep(3)
     
-    def check_winner(self):
+    def check_winner(self, silent:bool):
         horizontal = self.check_vertical()
         vertical = self.check_horizontal()
         diagonal = self.check_diagonal()
         
         if not horizontal == None:
+            if silent:
+                return True
             self.winner_msg(horizontal)
             self.reset_board()
                 
         elif not vertical == None:
+            if silent:
+                return True
             self.winner_msg(vertical)
             self.reset_board()
 
         elif not diagonal == None:
+            if silent:
+                return True
             self.winner_msg(diagonal)
             self.reset_board()
             
